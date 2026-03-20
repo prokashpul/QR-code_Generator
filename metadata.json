@@ -1,0 +1,5 @@
+{
+  "name": "QR Master: Advanced Generator & Scanner",
+  "description": "A powerful, all-in-one QR code tool for generating highly customizable codes and scanning them in real-time using your device camera.",
+  "requestFramePermissions": ["camera"]
+}

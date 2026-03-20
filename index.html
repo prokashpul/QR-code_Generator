@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Master - Advanced QR Code Generator & Scanner</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- QR Code Styling CDN -->
+    <script type="text/javascript" src="https://unpkg.com/qr-code-styling@1.5.0/lib/qr-code-styling.js"></script>
+    <!-- HTML5 QR Code Scanner CDN -->
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+        }
+        .tab-active {
+            border-bottom: 2px solid #3b82f6;
+            color: #3b82f6;
+        }
+        #reader {
+            width: 100% !important;
+            border: none !important;
+        }
+        #reader__dashboard {
+            padding: 10px !important;
+        }
+        #reader video {
+            border-radius: 0.75rem;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #e2e8f0;
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #cbd5e1;
+        }
+    </style>
+</head>
+<body class="min-h-screen text-slate-900">
+    <div class="max-w-5xl mx-auto px-4 py-8">
+        <!-- Header -->
+        <header class="text-center mb-10">
+            <h1 class="text-4xl font-extrabold tracking-tight text-slate-900 mb-2">QR Master</h1>
+            <p class="text-slate-500">Generate custom QR codes and scan them instantly</p>
+        </header>
+
+        <!-- Main Card -->
+        <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-100">
+            <!-- Tabs Navigation -->
+            <div class="flex border-b border-slate-100">
+                <button id="tab-gen" class="flex-1 py-4 text-sm font-semibold transition-colors hover:bg-slate-50 tab-active">
+                    Generator
+                </button>
+                <button id="tab-scan" class="flex-1 py-4 text-sm font-semibold transition-colors hover:bg-slate-50 text-slate-500">
+                    Scanner
+                </button>
+            </div>
+
+            <!-- Content Area -->
+            <div class="p-6 md:p-8">
+                <!-- Generator Section -->
+                <div id="section-gen" class="space-y-8">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <!-- Controls -->
+                        <div class="space-y-6">
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-2">Content (URL or Text)</label>
+                                <textarea id="qr-data" rows="3" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none resize-none" placeholder="Enter URL or text here...">https://google.com</textarea>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-700 mb-2">Dots Color</label>
+                                    <input type="color" id="qr-color-dots" value="#000000" class="w-full h-12 p-1 rounded-lg border border-slate-200 cursor-pointer">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-700 mb-2">Background</label>
+                                    <input type="color" id="qr-color-bg" value="#ffffff" class="w-full h-12 p-1 rounded-lg border border-slate-200 cursor-pointer">
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-700 mb-2">Dots Style</label>
+                                    <select id="qr-dots-type" class="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none">
+                                        <option value="square">Square</option>
+                                        <option value="dots">Dots</option>
+                                        <option value="rounded">Rounded</option>
+                                        <option value="extra-rounded">Extra Rounded</option>
+                                        <option value="classy">Classy</option>
+                                        <option value="classy-rounded">Classy Rounded</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-700 mb-2">Corners Style</label>
+                                    <select id="qr-corners-type" class="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none">
+                                        <option value="square">Square</option>
+                                        <option value="dot">Dot</option>
+                                        <option value="extra-rounded">Rounded</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Logo Settings -->
+                            <div class="pt-4 border-t border-slate-100 space-y-4">
+                                <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider">Logo Settings</h3>
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-700 mb-2">Upload Logo (Optional)</label>
+                                    <input type="file" id="qr-logo-upload" accept="image/*" class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition-all">
+                                </div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-slate-700 mb-1">Logo Size</label>
+                                        <input type="range" id="qr-logo-size" min="0.1" max="0.5" step="0.05" value="0.4" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-slate-700 mb-1">Logo Margin</label>
+                                        <input type="range" id="qr-logo-margin" min="0" max="20" step="1" value="5" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                                    </div>
+                                </div>
+                                <button id="btn-remove-logo" class="text-xs text-red-500 font-medium hover:text-red-600 transition-colors hidden">Remove Logo</button>
+                            </div>
+                        </div>
+
+                        <!-- Preview -->
+                        <div class="flex flex-col items-center justify-center bg-slate-50 rounded-2xl p-8 border border-dashed border-slate-200">
+                            <div id="qr-canvas-container" class="bg-white p-4 rounded-xl shadow-sm mb-6"></div>
+                            
+                            <div class="flex gap-3 w-full max-w-xs">
+                                <button id="btn-download-png" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-lg shadow-blue-200 flex items-center justify-center gap-2">
+                                    <span>PNG</span>
+                                </button>
+                                <button id="btn-download-svg" class="flex-1 bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-lg shadow-slate-200 flex items-center justify-center gap-2">
+                                    <span>SVG</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Scanner Section -->
+                <div id="section-scan" class="hidden space-y-8">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <!-- Camera Area -->
+                        <div class="space-y-4">
+                            <div id="reader-container" class="relative overflow-hidden rounded-2xl bg-slate-900 aspect-square flex items-center justify-center">
+                                <div id="reader"></div>
+                                <div id="scan-placeholder" class="absolute inset-0 flex flex-col items-center justify-center text-slate-400 p-6 text-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mb-4 opacity-20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    </svg>
+                                    <p class="text-sm">Camera preview will appear here</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex gap-3">
+                                <button id="btn-start-scan" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-lg shadow-blue-200">
+                                    Start Camera
+                                </button>
+                                <button id="btn-stop-scan" class="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-lg shadow-red-200 hidden">
+                                    Stop Camera
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Scan Result -->
+                        <div class="space-y-6">
+                            <div class="bg-slate-50 rounded-2xl p-6 border border-slate-100 h-full flex flex-col">
+                                <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Scan Result</h3>
+                                <div id="scan-result-container" class="flex-1 bg-white rounded-xl border border-slate-200 p-4 mb-4 overflow-auto break-all text-slate-600 italic">
+                                    No QR code detected yet...
+                                </div>
+                                <button id="btn-copy-result" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 px-4 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                                    Copy to Clipboard
+                                </button>
+                            </div>
+
+                            <!-- Scan History -->
+                            <div class="bg-slate-50 rounded-2xl p-6 border border-slate-100 flex flex-col max-h-[400px]">
+                                <div class="flex items-center justify-between mb-4">
+                                    <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider">Scan History</h3>
+                                    <button id="btn-clear-history" class="text-xs text-red-500 font-medium hover:text-red-600 transition-colors">Clear All</button>
+                                </div>
+                                <div id="history-list" class="flex-1 overflow-y-auto space-y-3 pr-2 custom-scrollbar">
+                                    <!-- History items will be injected here -->
+                                    <p class="text-xs text-slate-400 text-center py-4">No history yet</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer Info -->
+        <footer class="mt-12 text-center text-slate-400 text-sm">
+            <p>&copy; 2026 QR Master. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <script>
+        // --- Tab Logic ---
+        const tabGen = document.getElementById('tab-gen');
+        const tabScan = document.getElementById('tab-scan');
+        const sectionGen = document.getElementById('section-gen');
+        const sectionScan = document.getElementById('section-scan');
+
+        tabGen.addEventListener('click', () => {
+            tabGen.classList.add('tab-active');
+            tabGen.classList.remove('text-slate-500');
+            tabScan.classList.remove('tab-active');
+            tabScan.classList.add('text-slate-500');
+            sectionGen.classList.remove('hidden');
+            sectionScan.classList.add('hidden');
+            stopScanner(); // Stop camera if switching tabs
+        });
+
+        tabScan.addEventListener('click', () => {
+            tabScan.classList.add('tab-active');
+            tabScan.classList.remove('text-slate-500');
+            tabGen.classList.remove('tab-active');
+            tabGen.classList.add('text-slate-500');
+            sectionScan.classList.remove('hidden');
+            sectionGen.classList.add('hidden');
+        });
+
+        // --- Generator Logic ---
+        const qrDataInput = document.getElementById('qr-data');
+        const qrColorDots = document.getElementById('qr-color-dots');
+        const qrColorBg = document.getElementById('qr-color-bg');
+        const qrDotsType = document.getElementById('qr-dots-type');
+        const qrCornersType = document.getElementById('qr-corners-type');
+        const qrLogoUpload = document.getElementById('qr-logo-upload');
+        const qrLogoSize = document.getElementById('qr-logo-size');
+        const qrLogoMargin = document.getElementById('qr-logo-margin');
+        const btnRemoveLogo = document.getElementById('btn-remove-logo');
+        const canvasContainer = document.getElementById('qr-canvas-container');
+
+        let logoDataUrl = null;
+
+        const qrCode = new QRCodeStyling({
+            width: 280,
+            height: 280,
+            type: "svg",
+            data: qrDataInput.value,
+            dotsOptions: {
+                color: qrColorDots.value,
+                type: qrDotsType.value
+            },
+            backgroundOptions: {
+                color: qrColorBg.value,
+            },
+            cornersSquareOptions: {
+                type: qrCornersType.value,
+                color: qrColorDots.value
+            },
+            imageOptions: {
+                crossOrigin: "anonymous",
+                margin: parseInt(qrLogoMargin.value),
+                imageSize: parseFloat(qrLogoSize.value),
+                hideBackgroundDots: true
+            }
+        });
+
+        qrCode.append(canvasContainer);
+
+        const updateQR = () => {
+            qrCode.update({
+                data: qrDataInput.value || " ",
+                image: logoDataUrl,
+                dotsOptions: {
+                    color: qrColorDots.value,
+                    type: qrDotsType.value
+                },
+                backgroundOptions: {
+                    color: qrColorBg.value,
+                },
+                cornersSquareOptions: {
+                    type: qrCornersType.value,
+                    color: qrColorDots.value
+                },
+                imageOptions: {
+                    margin: parseInt(qrLogoMargin.value),
+                    imageSize: parseFloat(qrLogoSize.value),
+                    hideBackgroundDots: true
+                }
+            });
+        };
+
+        [qrDataInput, qrColorDots, qrColorBg, qrDotsType, qrCornersType, qrLogoSize, qrLogoMargin].forEach(el => {
+            el.addEventListener('input', updateQR);
+        });
+
+        qrLogoUpload.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    logoDataUrl = event.target.result;
+                    btnRemoveLogo.classList.remove('hidden');
+                    updateQR();
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        btnRemoveLogo.addEventListener('click', () => {
+            logoDataUrl = null;
+            qrLogoUpload.value = '';
+            btnRemoveLogo.classList.add('hidden');
+            updateQR();
+        });
+
+        document.getElementById('btn-download-png').addEventListener('click', () => {
+            qrCode.download({ name: "qr-code", extension: "png" });
+        });
+
+        document.getElementById('btn-download-svg').addEventListener('click', () => {
+            qrCode.download({ name: "qr-code", extension: "svg" });
+        });
+
+        // --- Scanner Logic ---
+        const html5QrCode = new Html5Qrcode("reader");
+        const btnStartScan = document.getElementById('btn-start-scan');
+        const btnStopScan = document.getElementById('btn-stop-scan');
+        const scanPlaceholder = document.getElementById('scan-placeholder');
+        const scanResultContainer = document.getElementById('scan-result-container');
+        const btnCopyResult = document.getElementById('btn-copy-result');
+        const historyList = document.getElementById('history-list');
+        const btnClearHistory = document.getElementById('btn-clear-history');
+
+        let isScanning = false;
+        let scanHistory = JSON.parse(localStorage.getItem('qr_scan_history') || '[]');
+
+        const saveToHistory = (text) => {
+            const newItem = {
+                id: Date.now(),
+                text: text,
+                date: new Date().toLocaleString()
+            };
+            scanHistory.unshift(newItem);
+            // Limit history to 50 items
+            if (scanHistory.length > 50) scanHistory.pop();
+            localStorage.setItem('qr_scan_history', JSON.stringify(scanHistory));
+            renderHistory();
+        };
+
+        const renderHistory = () => {
+            if (scanHistory.length === 0) {
+                historyList.innerHTML = '<p class="text-xs text-slate-400 text-center py-4">No history yet</p>';
+                return;
+            }
+
+            historyList.innerHTML = scanHistory.map(item => `
+                <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm group relative">
+                    <div class="flex justify-between items-start mb-1">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">${item.date}</span>
+                        <button onclick="copyHistoryItem('${item.id}')" class="text-blue-500 hover:text-blue-600 text-[10px] font-bold uppercase tracking-tight opacity-0 group-hover:opacity-100 transition-opacity">Copy</button>
+                    </div>
+                    <p class="text-xs text-slate-600 break-all line-clamp-2">${item.text}</p>
+                </div>
+            `).join('');
+        };
+
+        window.copyHistoryItem = (id) => {
+            const item = scanHistory.find(i => i.id == id);
+            if (item) {
+                navigator.clipboard.writeText(item.text).then(() => {
+                    alert('Copied to clipboard!');
+                });
+            }
+        };
+
+        btnClearHistory.addEventListener('click', () => {
+            if (confirm('Are you sure you want to clear all scan history?')) {
+                scanHistory = [];
+                localStorage.removeItem('qr_scan_history');
+                renderHistory();
+            }
+        });
+
+        const startScanner = async () => {
+            try {
+                scanPlaceholder.classList.add('hidden');
+                btnStartScan.classList.add('hidden');
+                btnStopScan.classList.remove('hidden');
+                
+                await html5QrCode.start(
+                    { facingMode: "environment" }, 
+                    {
+                        fps: 10,
+                        qrbox: { width: 250, height: 250 }
+                    },
+                    (decodedText, decodedResult) => {
+                        // Success
+                        scanResultContainer.textContent = decodedText;
+                        scanResultContainer.classList.remove('italic', 'text-slate-400');
+                        scanResultContainer.classList.add('text-slate-900', 'font-medium');
+                        btnCopyResult.disabled = false;
+                        
+                        // Save to history
+                        saveToHistory(decodedText);
+                        
+                        // Visual feedback
+                        scanResultContainer.classList.add('bg-green-50');
+                        setTimeout(() => scanResultContainer.classList.remove('bg-green-50'), 500);
+                    },
+                    (errorMessage) => {
+                        // parse error, ignore
+                    }
+                );
+                isScanning = true;
+            } catch (err) {
+                console.error("Unable to start scanning", err);
+                alert("Camera access denied or not available.");
+                stopScanner();
+            }
+        };
+
+        // Initial render
+        renderHistory();
+
+        const stopScanner = async () => {
+            if (isScanning) {
+                await html5QrCode.stop();
+                isScanning = false;
+            }
+            scanPlaceholder.classList.remove('hidden');
+            btnStartScan.classList.remove('hidden');
+            btnStopScan.classList.add('hidden');
+        };
+
+        btnStartScan.addEventListener('click', startScanner);
+        btnStopScan.addEventListener('click', stopScanner);
+
+        btnCopyResult.addEventListener('click', () => {
+            const text = scanResultContainer.textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = btnCopyResult.textContent;
+                btnCopyResult.textContent = 'Copied!';
+                btnCopyResult.classList.replace('bg-slate-800', 'bg-green-600');
+                setTimeout(() => {
+                    btnCopyResult.textContent = originalText;
+                    btnCopyResult.classList.replace('bg-green-600', 'bg-slate-800');
+                }, 2000);
+            });
+        });
+    </script>
+</body>
+</html>
+
